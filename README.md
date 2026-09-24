@@ -8,15 +8,15 @@ Text tables and JSON reports support both interactive use and automation.
 
 ## Build and run
 
-From the repository root:
+Build from the sibling verification repository, then run the tool against a project:
 
 ```sh
+cd ~/git/gomlang/verification
 just ecosystem-test goml_stats
-ecosystem/goml_stats/_artifact/bin/cmd/goml_stats/goml_stats .
-ecosystem/goml_stats/_artifact/bin/cmd/goml_stats/goml_stats gomlc --modules --packages
-ecosystem/goml_stats/_artifact/bin/cmd/goml_stats/goml_stats ecosystem --files
-ecosystem/goml_stats/_artifact/bin/cmd/goml_stats/goml_stats . --exclude gomlc/testdata --exclude gomlgo/testdata
-ecosystem/goml_stats/_artifact/bin/cmd/goml_stats/goml_stats . --json --files > ecosystem/goml_stats/_artifact/source-stats.json
+cd ../../goml-dev
+../gomlang/goml_stats/_artifact/bin/cmd/goml_stats/goml_stats .
+../gomlang/goml_stats/_artifact/bin/cmd/goml_stats/goml_stats gomlc --modules --packages
+../gomlang/goml_stats/_artifact/bin/cmd/goml_stats/goml_stats . --json --files > ../gomlang/goml_stats/_artifact/source-stats.json
 ```
 
 The verification command resolves versioned dependencies from an isolated local
@@ -145,6 +145,7 @@ arguments. Errors go to stderr; JSON goes only to stdout.
 ## Verification
 
 ```sh
+cd ~/git/gomlang/verification
 just ecosystem-test goml_stats
 ```
 
@@ -155,5 +156,5 @@ literal exclusions, hierarchical Git ignore rules and negation, symbolic links,
 special files, invalid UTF-8, argument errors, JSON
 escaping, deterministic output and 48 generated source files with known counts.
 Temporary fixtures stay under the module's `_artifact/cli-tests/`; command logs
-and a verification report stay under `ecosystem/_artifact/verification/`.
+and a verification report stay under `../verification/_artifact/verification/`.
 Verification uses the GoML toolchain and `mkfifo`, with no manual registry setup.
