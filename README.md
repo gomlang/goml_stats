@@ -31,7 +31,7 @@ targets Linux amd64, matching the standard filesystem APIs.
 goml_stats [OPTIONS] [PATH]
 ```
 
-`PATH` defaults to the current directory. It can be a directory or a single `.gom`
+`PATH` defaults to the current directory. It can be a directory or a single `.goml`
 file. Options can appear before or after the path.
 
 | Option | Behavior |
@@ -45,7 +45,7 @@ file. Options can appear before or after the path.
 | `--no-default-excludes` | Disable the built-in exclusions; explicit exclusions and Git ignore rules still apply |
 | `--no-ignore` | Disable `.gitignore` and root `.git/info/exclude` loading |
 | `-h`, `--help` | Show usage |
-| `--` | End options, for example `goml_stats -- -example.gom` |
+| `--` | End options, for example `goml_stats -- -example.goml` |
 
 Default exclusions are `.git`, `.hg`, `.svn`, `.goml`, `_artifact`, `_bootstrap`,
 `stage0`, `stage1`, `stage2`, `stage3`, `node_modules` and `__pycache__`. Matching
@@ -70,7 +70,8 @@ An explicitly supplied scan root is always visited, even when its name is on the
 exclusion list or matches an ignore rule. A single-file scan bypasses ignore
 rules. Symbolic links inside the tree are skipped, including dangling
 links and directory loops. A symbolic link supplied as the root is rejected.
-Only regular files with the case-sensitive `.gom` extension are counted; generated
+Only regular files with the case-sensitive `.goml` extension are counted; legacy
+`.gom` files are ignored and rejected as explicit file roots. Generated
 Go files, compiler snapshots and other file types are ignored. Distinct hard-link
 paths count as distinct files.
 
@@ -90,7 +91,7 @@ paths count as distinct files.
 - `bytes` includes all source bytes, including whitespace, comments and line
   terminators. Invalid UTF-8 and filesystem errors fail the scan. No partial
   success report is emitted.
-- `test_files` counts files ending in `_test.gom` or located beneath a directory
+- `test_files` counts files ending in `_test.goml` or located beneath a directory
   named `tests`. This is a filename/path convention, not a count of `#[test]`
   declarations. It also applies when scanning a test file directly.
 - Modules are directories containing a discovered regular `goml.toml` file,
@@ -99,7 +100,7 @@ paths count as distinct files.
   are not counted again in their parent. Sources outside these modules appear in
   `unassigned`. Ancestors outside the requested tree are not searched; a
   single-file scan therefore discovers no modules.
-- Packages are distinct directories with at least one counted `.gom` file.
+- Packages are distinct directories with at least one counted `.goml` file.
   Standalone fixtures and sources without a valid package declaration are still
   included. This measures source layout rather than compiler-resolved packages.
 

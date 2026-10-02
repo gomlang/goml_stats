@@ -92,7 +92,7 @@ fn module_owner(directory: string, modules: HashMap[string, Counts]) -> Option[s
 
 fn is_test_file(relative: string) -> bool {
     let name = path::file_name(relative).unwrap_or(relative);
-    if name.byte_len() >= 9 && name.byte_slice(name.byte_len() - 9, name.byte_len()) == "_test.gom" {
+    if name.ends_with("_test.goml") {
         return true
     }
     for component in path::components(relative) {
@@ -124,10 +124,10 @@ pub fn scan(root: string, options: Options) -> Result[Report, string] {
     let absolute = path::absolute_structured(root).map_err(|error| error.to_string())?;
     let metadata = fs::symlink_metadata(absolute).map_err(|error| error.to_string())?;
     if !metadata.file_type().is_dir() && !metadata.file_type().is_file() {
-        return Result::Err(f"scan root must be a directory or a .gom file: {absolute}")
+        return Result::Err(f"scan root must be a directory or a .goml file: {absolute}")
     }
-    if metadata.file_type().is_file() && path::extension(absolute) != Option::Some("gom") {
-        return Result::Err(f"scan root is not a .gom file: {absolute}")
+    if metadata.file_type().is_file() && path::extension(absolute) != Option::Some("goml") {
+        return Result::Err(f"scan root is not a .goml file: {absolute}")
     }
     let base = if metadata.file_type().is_dir() {
         absolute
@@ -172,7 +172,7 @@ pub fn scan(root: string, options: Options) -> Result[Report, string] {
                 let directory = path::parent(relative).unwrap_or(".");
                 modules.set(directory, Counts::empty());
                 module_names.push(directory);
-            } else if path::extension(name) == Option::Some("gom") {
+            } else if path::extension(name) == Option::Some("goml") {
                 let source = fs::read_file_structured(entry.path()).map_err(
                     |error| error.to_string(),
                 )?;
