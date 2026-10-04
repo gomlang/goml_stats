@@ -107,6 +107,9 @@ paths count as distinct files.
 Paths in summaries are relative to the scanned directory, or the parent of a
 single-file root. `.` identifies that base directory. The report root is absolute.
 Files and groups are sorted lexicographically for reproducible output.
+Text reports escape backslashes, line breaks, tabs, terminal controls and Unicode
+direction marks in paths, keeping each entry on one display row. JSON reports
+retain the original path strings for programmatic use.
 
 ## JSON and library API
 

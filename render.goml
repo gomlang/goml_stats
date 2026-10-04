@@ -99,13 +99,61 @@ fn header(output: text::StringBuilder, title: string) -> () {
     output.write_line("  " + title);
 }
 
+fn display_path(value: string) -> string {
+    let output = text::StringBuilder::new();
+    for character in value.chars() {
+        let escaped = match character {
+            '\\' => "\\\\",
+            '\n' => "\\n",
+            '\r' => "\\r",
+            '\t' => "\\t",
+            _ => "",
+        };
+        if escaped != "" {
+            output.write_string(escaped);
+            continue;
+        }
+        let code = character.to_u32();
+        let digits = if code < 32 || (code >= 127 && code <= 159) {
+            2
+        } else if (code >= 0x202a && code <= 0x202e) || (code >= 0x2066 && code <= 0x2069)
+            || code == 0x061c
+            || code == 0x200e
+            || code == 0x200f
+            || code == 0x2028
+            || code == 0x2029 {
+            4
+        } else {
+            0
+        };
+        if digits == 0 {
+            output.write_char(character);
+        } else {
+            output.write_string(
+                if digits == 2 {
+                    "\\x"
+                } else {
+                    "\\u"
+                },
+            );
+            let mut shift = (digits - 1) * 4;
+            while shift >= 0 {
+                let index = ((code >> shift) & 15).to_isize();
+                output.write_string("0123456789abcdef".byte_slice(index, index + 1));
+                shift -= 4;
+            }
+        }
+    }
+    output.finish()
+}
+
 fn row(output: text::StringBuilder, counts: Counts, name: string) -> () {
     for value in Vec::from_array(
         [counts.files, counts.lines, counts.code, counts.comments, counts.blank, counts.bytes],
     ) {
         output.write_string(padded(value.to_string()));
     }
-    output.write_line("  " + name);
+    output.write_line("  " + display_path(name));
 }
 
 fn group_table(output: text::StringBuilder, title: string, groups: Vec[Group]) -> () {
@@ -123,7 +171,7 @@ pub fn render_text(
     include_files: bool,
 ) -> string {
     let output = text::StringBuilder::new();
-    output.write_line("GoML source statistics: " + report.root);
+    output.write_line("GoML source statistics: " + display_path(report.root));
     output.write_line(
         f"Modules: {report.modules.len()}  Packages: {report.packages.len()}  Test files: {report.totals.test_files}",
     );

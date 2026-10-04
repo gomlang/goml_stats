@@ -177,6 +177,21 @@ fn select(expected: Vec[(string, Vec[isize])], removed: Vec[string]) -> Vec[(str
 }
 
 #[test]
+fn cli_keeps_control_characters_in_json_but_escapes_text_paths() -> () {
+    let root = cli_root();
+    defer {
+        let _ = fs::remove_dir_all(root);
+    };
+    let name = "中文\n\t\u001b[2J\\n.goml";
+    write(root, name, "code\n");
+    let output = invoke(root, Vec::from_array(["--files", "."]), 0);
+    testing::assert(output.contains("中文\\n\\t\\x1b[2J\\\\n.goml"));
+    testing::assert(!output.contains(name));
+    testing::assert(!output.contains("\u001b"));
+    check_report(report(root, Vec::new(), "."), simple_sources(Vec::from_array([name])));
+}
+
+#[test]
 fn project_cli_counts_grouping_exclusions_and_errors() -> () {
     let root = cli_root();
     let sources = Vec::from_array(

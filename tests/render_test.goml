@@ -1,0 +1,51 @@
+package tests;
+
+use ecosystem::goml_stats as stats;
+use std::json;
+use std::testing;
+
+fn path_report(name: string) -> stats::Report {
+    let counts = stats::Counts::empty();
+    stats::Report {
+        root: name,
+        totals: counts,
+        modules: Vec::from_array([stats::Group { path: name, counts }]),
+        packages: Vec::from_array([stats::Group { path: name, counts }]),
+        files: Vec::from_array(
+            [
+                stats::FileStats {
+                    path: name,
+                    package_path: name,
+                    module_path: Option::Some(name),
+                    counts,
+                },
+            ],
+        ),
+        unassigned: counts,
+    }
+}
+
+#[test]
+fn text_report_paths_cannot_add_rows_or_terminal_controls() -> () {
+    let name = "中文/line\ncarriage\rtab\t\u001b[2J\u009b31m\u007f\\n.goml";
+    let expected = "中文/line\\ncarriage\\rtab\\t\\x1b[2J\\x9b31m\\x7f\\\\n.goml";
+    let report = path_report(name);
+    let rendered = stats::render_text(report, true, true, true);
+    testing::assert(rendered.starts_with("GoML source statistics: " + expected + "\n"));
+    testing::assert_eq(rendered.split(expected).len(), 5);
+    for control in["\r", "\t", "\u001b", "\u009b", "\u007f"] {
+        testing::assert(!rendered.contains(control));
+    }
+    let encoded = testing::expect_ok(json::parse(stats::render_json(report, true)), "JSON report");
+    let root = json::field(encoded, "root").and_then(|value| json::as_string(value));
+    testing::assert(root == Option::Some(name));
+}
+
+#[test]
+fn text_report_paths_preserve_unicode_and_show_invisible_direction_marks() -> () {
+    let ordinary = "中文/👩‍💻/é.goml";
+    testing::assert(stats::render_text(path_report(ordinary), true, true, true).contains(ordinary));
+    let name = "a\u2028b\u2029c\u202ed\u2066e\u061cf\u200eg\u200fh\u2069";
+    let expected = "a\\u2028b\\u2029c\\u202ed\\u2066e\\u061cf\\u200eg\\u200fh\\u2069";
+    testing::assert(stats::render_text(path_report(name), true, true, true).contains(expected));
+}
