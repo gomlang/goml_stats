@@ -115,6 +115,8 @@ Files and groups are sorted lexicographically for reproducible output.
 Text reports escape backslashes, line breaks, tabs, terminal controls and Unicode
 direction marks in paths, keeping each entry on one display row. JSON reports
 retain the original path strings for programmatic use.
+Text table columns expand to fit the totals and keep at least one space between
+numbers, with consistent alignment across summary, module, package and file rows.
 
 ## JSON and library API
 

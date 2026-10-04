@@ -80,21 +80,43 @@ pub fn render_json(report: Report, include_files: bool) -> string {
     json::encode(json::Value::Object(fields))
 }
 
-fn padded(value: string) -> string {
+fn count_columns(counts: Counts) -> Vec[isize] {
+    Vec::from_array(
+        [counts.files, counts.lines, counts.code, counts.comments, counts.blank, counts.bytes],
+    )
+}
+
+fn column_widths(totals: Counts) -> Vec[isize] {
+    let widths = Vec::new();
+    for value in count_columns(totals) {
+        let length = value.to_string().byte_len();
+        widths.push(
+            if length < 10 {
+                10
+            } else {
+                length + 1
+            },
+        );
+    }
+    widths
+}
+
+fn padded(value: string, width: isize) -> string {
     text::repeat(
         " ",
-        if value.byte_len() < 10 {
-            10 - value.byte_len()
+        if value.byte_len() < width {
+            width - value.byte_len()
         } else {
-            0
+            1
         },
     )
         + value
 }
 
-fn header(output: text::StringBuilder, title: string) -> () {
-    for name in Vec::from_array(["Files", "Lines", "Code", "Comments", "Blank", "Bytes"]) {
-        output.write_string(padded(name));
+fn header(output: text::StringBuilder, title: string, widths: Vec[isize]) -> () {
+    let names = Vec::from_array(["Files", "Lines", "Code", "Comments", "Blank", "Bytes"]);
+    for index in 0..names.len() {
+        output.write_string(padded(names[index], widths[index]));
     }
     output.write_line("  " + title);
 }
@@ -147,20 +169,19 @@ fn display_path(value: string) -> string {
     output.finish()
 }
 
-fn row(output: text::StringBuilder, counts: Counts, name: string) -> () {
-    for value in Vec::from_array(
-        [counts.files, counts.lines, counts.code, counts.comments, counts.blank, counts.bytes],
-    ) {
-        output.write_string(padded(value.to_string()));
+fn row(output: text::StringBuilder, counts: Counts, name: string, widths: Vec[isize]) -> () {
+    let values = count_columns(counts);
+    for index in 0..values.len() {
+        output.write_string(padded(values[index].to_string(), widths[index]));
     }
     output.write_line("  " + display_path(name));
 }
 
-fn group_table(output: text::StringBuilder, title: string, groups: Vec[Group]) -> () {
+fn group_table(output: text::StringBuilder, title: string, groups: Vec[Group], widths: Vec[isize]) -> () {
     output.write_line("");
-    header(output, title);
+    header(output, title, widths);
     for group in groups {
-        row(output, group.counts, group.path);
+        row(output, group.counts, group.path, widths);
     }
 }
 
@@ -171,27 +192,28 @@ pub fn render_text(
     include_files: bool,
 ) -> string {
     let output = text::StringBuilder::new();
+    let widths = column_widths(report.totals);
     output.write_line("GoML source statistics: " + display_path(report.root));
     output.write_line(
         f"Modules: {report.modules.len()}  Packages: {report.packages.len()}  Test files: {report.totals.test_files}",
     );
     output.write_line("");
-    header(output, "Scope");
-    row(output, report.totals, "Total");
+    header(output, "Scope", widths);
+    row(output, report.totals, "Total", widths);
     if include_modules {
-        group_table(output, "Module directory", report.modules);
+        group_table(output, "Module directory", report.modules, widths);
         if report.unassigned.files > 0 {
-            row(output, report.unassigned, "(outside discovered modules)");
+            row(output, report.unassigned, "(outside discovered modules)", widths);
         }
     }
     if include_packages {
-        group_table(output, "Package directory", report.packages);
+        group_table(output, "Package directory", report.packages, widths);
     }
     if include_files {
         output.write_line("");
-        header(output, "File");
+        header(output, "File", widths);
         for file in report.files {
-            row(output, file.counts, file.path);
+            row(output, file.counts, file.path, widths);
         }
     }
     output.finish()
