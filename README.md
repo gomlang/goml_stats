@@ -92,8 +92,9 @@ paths count as distinct files.
   terminators. Invalid UTF-8 and filesystem errors fail the scan. No partial
   success report is emitted.
 - `test_files` counts files ending in `_test.goml` or located beneath a directory
-  named `tests`. This is a filename/path convention, not a count of `#[test]`
-  declarations. It also applies when scanning a test file directly.
+  named `tests` in the normalized path spelling. This is a filename/path
+  convention, not a count of `#[test]` declarations. It also applies when scanning
+  a test file directly; `tests/../src/file.goml` is not a test file.
 - Modules are directories containing a discovered regular `goml.toml` file,
   including modules with zero source files. Manifest contents are not parsed.
   Each source belongs to the closest discovered ancestor module; nested modules
@@ -106,6 +107,10 @@ paths count as distinct files.
 
 Paths in summaries are relative to the scanned directory, or the parent of a
 single-file root. `.` identifies that base directory. The report root is absolute.
+Scan roots retain their filesystem path components: `link/..` is resolved by the
+operating system, and missing or regular-file components before `/..` remain
+errors. A root ending in `/` or `/.` still rejects a symbolic link as its final
+directory after validating the original path.
 Files and groups are sorted lexicographically for reproducible output.
 Text reports escape backslashes, line breaks, tabs, terminal controls and Unicode
 direction marks in paths, keeping each entry on one display row. JSON reports

@@ -91,11 +91,12 @@ fn module_owner(directory: string, modules: HashMap[string, Counts]) -> Option[s
 }
 
 fn is_test_file(relative: string) -> bool {
-    let name = path::file_name(relative).unwrap_or(relative);
+    let normalized = path::clean(relative);
+    let name = path::file_name(normalized).unwrap_or(normalized);
     if name.ends_with("_test.goml") {
         return true
     }
-    for component in path::components(relative) {
+    for component in path::components(normalized) {
         if component == "tests" {
             return true
         }
@@ -121,8 +122,37 @@ fn sorted_groups(values: HashMap[string, Counts], names: Vec[string]) -> Vec[Gro
 }
 
 pub fn scan(root: string, options: Options) -> Result[Report, string] {
-    let absolute = path::absolute_structured(root).map_err(|error| error.to_string())?;
-    let metadata = fs::symlink_metadata(absolute).map_err(|error| error.to_string())?;
+    let mut absolute = if path::is_absolute(root) {
+        root
+    } else {
+        let current = path::absolute_structured(".").map_err(|error| error.to_string())?;
+        if root == "" || root == "." {
+            current
+        } else {
+            current + "/" + root
+        }
+    };
+    let original = absolute;
+    let original_metadata = fs::symlink_metadata(original).map_err(|error| error.to_string())?;
+    // Validate the original path before stripping harmless directory suffixes.
+    // In particular, a missing or regular-file component before /.. or /. must fail.
+    while absolute.byte_len() > 1 {
+        if absolute.ends_with("/") {
+            absolute = absolute.byte_slice(0, absolute.byte_len() - 1);
+        } else if absolute.ends_with("/.") {
+            absolute = absolute.byte_slice(0, absolute.byte_len() - 2);
+            if absolute == "" {
+                absolute = "/";
+            }
+        } else {
+            break;
+        }
+    }
+    let metadata = if absolute == original {
+        original_metadata
+    } else {
+        fs::symlink_metadata(absolute).map_err(|error| error.to_string())?
+    };
     if !metadata.file_type().is_dir() && !metadata.file_type().is_file() {
         return Result::Err(f"scan root must be a directory or a .goml file: {absolute}")
     }

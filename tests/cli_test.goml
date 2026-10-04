@@ -192,6 +192,50 @@ fn cli_keeps_control_characters_in_json_but_escapes_text_paths() -> () {
 }
 
 #[test]
+fn cli_preserves_filesystem_resolution_of_scan_roots() -> () {
+    let root = cli_root();
+    defer {
+        let _ = fs::remove_dir_all(root);
+    };
+    write(root, "source.goml", "wrong\n");
+    write(root, "actual/source.goml", "first\nsecond\n");
+    testing::assert_ok(fs::create_dir(path::join(root, "actual/child")));
+    testing::assert_ok(fs::create_dir(path::join(root, "tests")));
+    testing::assert_ok(
+        fs::symbolic_link(path::join(root, "actual/child"), path::join(root, "link")),
+    );
+    let expected = Vec::from_array([("source.goml", counts("first\nsecond\n", 2, 0, 0, false))]);
+    for target in[
+        "link/../source.goml",
+        root + "/link/../source.goml",
+        "link/..",
+        root + "/link/..",
+        "tests/../actual/source.goml",
+        root + "/tests/../actual/source.goml",
+        "tests/../actual",
+        root + "/tests/../actual",
+    ] {
+        check_report(report(root, Vec::new(), target), expected);
+    }
+    write(root, "regular", "not a directory\n");
+    for target in[
+        "missing/../source.goml",
+        "regular/../source.goml",
+        "missing/..",
+        "regular/..",
+        "source.goml/.",
+        "source.goml/",
+        "link",
+        "link/",
+        "link/.",
+        "link/./",
+    ] {
+        invoke(root, Vec::from_array([target]), 1);
+        invoke(root, Vec::from_array([root + "/" + target]), 1);
+    }
+}
+
+#[test]
 fn project_cli_counts_grouping_exclusions_and_errors() -> () {
     let root = cli_root();
     let sources = Vec::from_array(
