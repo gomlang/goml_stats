@@ -10,7 +10,7 @@ Text tables and JSON reports support both interactive use and automation.
 
 ## Build and run
 
-Build from the sibling verification repository, then run the tool against a project:
+Build from the sibling workflows repository, then run the tool against a project:
 
 ```sh
 cd ~/git/gomlang/workflows
