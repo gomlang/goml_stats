@@ -1,6 +1,6 @@
 # goml_stats
 
-Requires a current GoML toolchain supporting unversioned registry dependencies; see [the pinned ecosystem toolchain](https://github.com/gomlang/verification/blob/main/ci/toolchain.json).
+Requires a current GoML toolchain supporting unversioned registry dependencies; see [the pinned ecosystem toolchain](https://github.com/gomlang/workflows/blob/main/ci/toolchain.json).
 
 A GoML project statistics tool using the `ecosystem::ignore` library for
 hierarchical Git ignore rules and filesystem traversal. It reports source files,
@@ -13,7 +13,7 @@ Text tables and JSON reports support both interactive use and automation.
 Build from the sibling verification repository, then run the tool against a project:
 
 ```sh
-cd ~/git/gomlang/verification
+cd ~/git/gomlang/workflows
 just ecosystem-test goml_stats
 cd ../../goml
 ../gomlang/goml_stats/_artifact/bin/cmd/goml_stats/goml_stats .
@@ -158,7 +158,7 @@ arguments. Errors go to stderr; JSON goes only to stdout.
 ## Verification
 
 ```sh
-cd ~/git/gomlang/verification
+cd ~/git/gomlang/workflows
 just ecosystem-test goml_stats
 ```
 
@@ -169,5 +169,5 @@ literal exclusions, hierarchical Git ignore rules and negation, symbolic links,
 special files, invalid UTF-8, argument errors, JSON
 escaping, deterministic output and 48 generated source files with known counts.
 Temporary fixtures stay under the module's `_artifact/cli-tests/`; command logs
-and a verification report stay under `../verification/_artifact/verification/`.
+and a verification report stay under `../workflows/_artifact/verification/`.
 Verification uses the GoML toolchain and `mkfifo`, with no manual registry setup.

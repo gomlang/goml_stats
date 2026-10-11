@@ -1,6 +1,6 @@
 package tests;
 
-use ecosystem::verification::reference as ref;
+use ecosystem::testkit::reference as ref;
 use std::bytes;
 use std::crypto::hash;
 use std::crypto::rand;

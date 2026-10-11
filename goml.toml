@@ -3,4 +3,4 @@ path = "ecosystem::goml_stats"
 
 [dependencies]
 "ecosystem::ignore" = true
-"ecosystem::verification" = true
+"ecosystem::testkit" = true
