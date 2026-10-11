@@ -1,5 +1,7 @@
 # goml_stats
 
+Requires a current GoML toolchain supporting unversioned registry dependencies; see [the pinned ecosystem toolchain](https://github.com/gomlang/verification/blob/main/ci/toolchain.json).
+
 A GoML project statistics tool using the `ecosystem::ignore` library for
 hierarchical Git ignore rules and filesystem traversal. It reports source files,
 physical lines, code lines, comment-only lines,
@@ -13,13 +15,13 @@ Build from the sibling verification repository, then run the tool against a proj
 ```sh
 cd ~/git/gomlang/verification
 just ecosystem-test goml_stats
-cd ../../goml-dev
+cd ../../goml
 ../gomlang/goml_stats/_artifact/bin/cmd/goml_stats/goml_stats .
 ../gomlang/goml_stats/_artifact/bin/cmd/goml_stats/goml_stats gomlc --modules --packages
 ../gomlang/goml_stats/_artifact/bin/cmd/goml_stats/goml_stats . --json --files > ../gomlang/goml_stats/_artifact/source-stats.json
 ```
 
-The verification command resolves versioned dependencies from an isolated local
+The verification command resolves unversioned dependencies from an isolated local
 registry snapshot and builds the tool. With the dependency available in a
 configured registry, `goml build` inside this directory also works. The resulting
 `goml_stats` executable can be copied onto `PATH`. Filesystem traversal currently
